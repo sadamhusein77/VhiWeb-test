@@ -1,71 +1,40 @@
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 import Cookies from "js-cookie";
-
-const API_BASE_URL = process.env.NEXT_PUBLIC_URL_API_POS;
-const API_VERSION = "v1";
+import { toast } from "react-toastify";
 
 const apiService = axios.create({
-  baseURL: `${API_BASE_URL}/${API_VERSION}`,
+  baseURL: "",
 });
 
-let isRefreshing = false;
-let refreshSubscribers = [];
-
-// Request interceptor
-apiService.interceptors.request.use(async (config) => {
-  const token = Cookies.get("access-token-pos");
+apiService.interceptors.request.use((config) => {
+  const token = Cookies.get("token-vhiweb");
   if (token) {
     config.headers["Authorization"] = `Bearer ${token}`;
+  }
+
+  if (config.method === "post" || config.method === "put") {
+    config.headers["Content-Type"] = "application/json";
   }
   return config;
 });
 
-// Response interceptor
-apiService.interceptors.response.use(
-  (response) => response,
-  async (error) => {
-    const { data, status } = error.response || {};
+let displayModalFunction: (() => void) | null = null;
 
-    if (status === 401) {
-      const originalRequest = error.config;
-      const refreshToken = Cookies.get("refresh-token-pos");
+export const setDisplayModalFunction = (fn: () => void) => {
+  displayModalFunction = fn;
+};
 
-      if (!isRefreshing) {
-        isRefreshing = true;
-        try {
-          // Use the refresh token to get a new access token
-          const response = await axios.post(`${API_BASE_URL}/auth/refresh-token`, {
-            refreshToken,
-          });
-
-          const newAccessToken = response.data.access_token;
-          Cookies.set("access-token-pos", newAccessToken, { expires: 1 });
-
-          // Update the original request with the new access token
-          originalRequest.headers["Authorization"] = `Bearer ${newAccessToken}`;
-
-          // Retry the original request
-          return axios(originalRequest);
-        } catch (error) {
-          console.error("Error refreshing token:", error);
-          // Redirect to login page or handle token refresh failure
-        } finally {
-          isRefreshing = false;
-        }
-      } else {
-        // Wait for the new access token to be received and retry the original request
-        return new Promise((resolve) => {
-          refreshSubscribers.push((newAccessToken: any) => {
-            originalRequest.headers["Authorization"] = `Bearer ${newAccessToken}`;
-            resolve(axios(originalRequest));
-          });
-        });
-      }
-    }
-
-    console.log(data?.message || "An error occurred")
-    return Promise.reject(error);
+const axiosInterceptor = (err: AxiosError) => {
+  if (err.response?.status === 401 && displayModalFunction) {
+    displayModalFunction();
+  } else {
+    const errMsg: any = err.response?.data
+    toast.error(errMsg?.error || "Unknown Error")
   }
-);
+
+  return Promise.reject(err);
+};
+
+apiService.interceptors.response.use((response) => response, axiosInterceptor);
 
 export default apiService;

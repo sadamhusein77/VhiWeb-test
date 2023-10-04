@@ -1,45 +1,40 @@
 import { AxiosError, AxiosResponse } from "axios";
 
 interface MyResponseData {
-  code: number;
+  status: number;
   message: string;
   data?: any;
-  meta?: any; 
+  page?: number;
+  per_page?: number;
+  total?: number;
+  total_pages?: number;
 }
 
 interface MyErrorResponse {
   response: {
     data: {
-      message?: string;
+      error?: string;
     };
+    status: number;
   };
 }
 
 export async function processResponseData(response: AxiosResponse<MyResponseData>) {
-  const responseData = response.data;
-  if (responseData.code > 300) {
-    return {
-      status: -1,
-      message: responseData.message,
-      data: responseData.data,
-    };
-  }
-
+  const {data, status} = response;
   return {
-    status: 1,
-    message: responseData.message,
-    data: responseData.data,
-    meta: responseData.meta,
+    status: status,
+    message: data?.message || 'Success',
+    data: data
   };
 }
 
 export async function processErrorResponse(error: AxiosError<MyErrorResponse> | any) {
   console.error("Error:", error);
-  const { message } = error?.response?.data ?? { message: "An error occurred" };
+  const { data, status } = error?.response
 
   return {
-    status: -1,
-    message: message,
+    status: status,
+    message: data?.error ?? "An error occurred",
     data: null,
   };
 }
