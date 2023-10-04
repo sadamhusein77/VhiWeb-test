@@ -9,7 +9,7 @@
 5. run npm run dev for development 
 6. finish
 
-or you can see the demo : 
+or you can see the demo : https://vhi-web-test.vercel.app/ 
 
 This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
 
