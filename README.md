@@ -1,5 +1,15 @@
 
 
+## How to run this app
+
+1. Clone this repo 
+2. Check your node.js version because next js 13 require Node.js 16.14 or later or you can install some version of nodejs with nvm
+3. run npm install to get all dependencies
+4. add .env file which i gave , if you dont have kindly please email to : sadamhusein77.sh@gmail.com
+5. run npm run dev for development 
+6. finish
+
+or you can see the demo : 
 
 This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
 
