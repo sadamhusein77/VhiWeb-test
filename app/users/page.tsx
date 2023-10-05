@@ -70,8 +70,18 @@ export default function Users() {
     [router]
   );
 
+  function debounce(func: Function, delay: number) {
+    let timeoutId: NodeJS.Timeout;
+    return function (this: any, ...args: any[]) {
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => {
+        func.apply(this, args);
+      }, delay);
+    };
+  }
+  
   const handleGetDataUsers = useCallback(
-    async (paramPage?: number) => {
+    debounce(async (paramPage?: number) => {
       const { page, per_page } = configPagination;
       const param = {
         page: paramPage ? paramPage : page,
@@ -104,10 +114,11 @@ export default function Users() {
           }
         }
         setIsLoading(false);
+        setIsFetching(false);
       } catch (err) {
         console.log("error", err);
       }
-    },
+    }, 1000),
     [configPagination]
   );
 
@@ -123,11 +134,8 @@ export default function Users() {
       const { scrollTop, scrollHeight, clientHeight } = divRef.current;
       const statusBar = scrollTop >= scrollHeight - clientHeight;
       if (statusBar && !isFetching) {
-        setIsFetching(true)
         setIsFetching(true);
-        handleGetDataUsers(configPagination.page + 1).then(() => {
-          setIsFetching(false)
-        })
+        handleGetDataUsers(configPagination.page + 1)
       }
     }
   }, [isFetching, configPagination, handleGetDataUsers]);
@@ -136,9 +144,15 @@ export default function Users() {
     if (divRef.current) {
       checkScrollbarPosition();
       divRef.current.addEventListener("scroll", checkScrollbarPosition);
+      if ('ontouchstart' in window) {
+        divRef.current.addEventListener('touchmove', checkScrollbarPosition);
+      } 
       window.addEventListener("resize", checkScrollbarPosition);
       return () => {
         divRef.current?.removeEventListener("scroll", checkScrollbarPosition);
+        if ('ontouchstart' in window) {
+          divRef.current?.removeEventListener('touchmove', checkScrollbarPosition);
+        }
         window.removeEventListener("resize", checkScrollbarPosition);
       };
     }
