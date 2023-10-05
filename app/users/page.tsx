@@ -136,8 +136,10 @@ export default function Users() {
     if (divRef.current) {
       checkScrollbarPosition();
       divRef.current.addEventListener("scroll", checkScrollbarPosition);
+      window.addEventListener("resize", checkScrollbarPosition);
       return () => {
         divRef.current?.removeEventListener("scroll", checkScrollbarPosition);
+        window.removeEventListener("resize", checkScrollbarPosition);
       };
     }
   }, [checkScrollbarPosition]);
